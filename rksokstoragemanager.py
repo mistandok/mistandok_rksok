@@ -2,7 +2,6 @@ from rksokprotocol import RKSOKCommand, RequestVerb, ResponseStatus
 from rksokstorage import RKSOKPhoneStorage
 
 
-
 class RKSOKStorageManager:
     def __init__(self, storage: RKSOKPhoneStorage) -> None:
         self._storage = storage
