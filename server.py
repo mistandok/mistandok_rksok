@@ -109,21 +109,15 @@ class RKSOKPhoneBookServer:
         """
         request = await self._get_all_data_from_reader(reader)    
 
-        print(f'Запрос: {request}')
-
         if not self._client_request_is_correct_RKSOK(request):
             response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
         else:
             valid, validation_server_response = await self._get_validation_response_for_request(RKSOKCommand(RequestVerb.CAN.value, value=request))
             
-            print(f'Ответ от валидатора: {valid}, {str(validation_server_response)}')
-            
             if not valid:
                 response = validation_server_response
             else:        
-                response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))
-            
-            print(f'Ответ для клиента: {str(response)}')            
+                response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))         
         
         await self._send_response_to_writer(writer, response)
 
@@ -145,7 +139,6 @@ class RKSOKPhoneBookServer:
         (RKSOKCommand) - response from storage
         (RKSOKCommand) - incorrect_value response
         """
-        print(f'Запрос для БД: {str(request)}')
         return await self._storage_manager.get_response_for_request(request)
     
     async def _send_response_to_writer(self, writer: asyncio.StreamWriter, response: RKSOKCommand) -> None:
