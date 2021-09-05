@@ -60,6 +60,9 @@ class RKSOKPhoneBookServer:
         (str) - decode message from reader
         """
         request = b""
+        request += await reader.readline(1024)
+        if not request:
+            return request.decode(self._encoding)
         while True:
             print(request)
             request += await reader.read(1024)
