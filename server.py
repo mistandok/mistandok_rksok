@@ -107,22 +107,32 @@ class RKSOKPhoneBookServer:
         Returns:
         None
         """
-        request = await self._get_all_data_from_reader(reader)
-        
+        request = await self._get_all_data_from_reader(reader)    
+
         print(f'Запрос: {request}')
 
-        valid, validation_server_response = await self._get_validation_response_for_request(RKSOKCommand(RequestVerb.CAN.value, value=request))
-
-        print(f'Ответ от валидатора: {valid}, {str(validation_server_response)}')
-
-        if not valid:
-            response = validation_server_response
-        else:        
-            response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))
-
-        print(f'Ответ для клиента: {str(response)}')
+        if not self._client_request_is_correct_RKSOK(request):
+            response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
+        else:
+            valid, validation_server_response = await self._get_validation_response_for_request(RKSOKCommand(RequestVerb.CAN.value, value=request))
+            
+            print(f'Ответ от валидатора: {valid}, {str(validation_server_response)}')
+            
+            if not valid:
+                response = validation_server_response
+            else:        
+                response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))
+            
+            print(f'Ответ для клиента: {str(response)}')            
         
         await self._send_response_to_writer(writer, response)
+
+    def _client_request_is_correct_RKSOK(self, request: str) -> bool:
+        """The function checks the compliance of the request with the protocol RKSOK"""
+        rksok_request = RKSOKCommand.rksokcommand_from_str(request)
+        if rksok_request.command() == ResponseStatus.INCORRECT_REQUEST.value:
+            return False
+        return True
 
     async def _get_response_for_request(self, request: RKSOKCommand) -> RKSOKCommand:
         """
@@ -135,11 +145,7 @@ class RKSOKPhoneBookServer:
         (RKSOKCommand) - response from storage
         (RKSOKCommand) - incorrect_value response
         """
-        print(f'Запрос для БД: f{str(request)}')
-
-        if request.command() == ResponseStatus.INCORRECT_REQUEST.value:
-            return request
-
+        print(f'Запрос для БД: {str(request)}')
         return await self._storage_manager.get_response_for_request(request)
     
     async def _send_response_to_writer(self, writer: asyncio.StreamWriter, response: RKSOKCommand) -> None:
