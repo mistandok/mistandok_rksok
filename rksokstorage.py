@@ -80,6 +80,21 @@ class DictRKSOKPhoneStorage(RKSOKPhoneStorage):
         print(f'delete dict data {key}')
 
 
+def _connection(func):
+    """
+    This decorator create connection with database for methods in PostgreSQLRKSOKPhoneStorage class.
+    """
+    async def with_connection(self, *args, **kwargs):
+        conn = await asyncpg.connect(user=self._user, password=self._password, database=self._database, host=self._host)
+        parameters = list(args)
+        parameters.append(conn)
+        result = await func(self, *parameters, **kwargs)
+        await conn.close()
+        return result
+        
+    return with_connection
+
+
 class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
     """
     This class is descendant for RKSOKPhoneStorage.
@@ -104,36 +119,42 @@ class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
 
     async def _select_data_by_key(self, conn: asyncpg.Connection, key: str) -> asyncpg.Record:
         return await conn.fetchrow('SELECT * FROM userphones WHERE username = $1', key)
-
-    async def get_data(self, key: str) -> str:
-        conn = await asyncpg.connect(user=self._user, password=self._password, database=self._database, host=self._host)
-        values = await self._select_data_by_key(conn, key)
-
-        if not values:
-            await conn.close()
+    
+    @_connection
+    async def _get_data_with_connection(self, key: str, conn: asyncpg.Connection = None) -> str:
+        if not conn:
             return None
-
-        await conn.close()
+        values = await self._select_data_by_key(conn, key)
+        if not values:
+            return None
         return dict(values).get("phones")
 
-    async def set_data(self, key: str, value: str) -> bool:
-        conn = await asyncpg.connect(user=self._user, password=self._password, database=self._database, host=self._host)
+    @_connection
+    async def _set_data_with_connection(self, key: str, value: str, conn: asyncpg.Connection = None) -> bool:
+        if not conn:
+            return False
         await conn.execute("UPDATE userphones SET phones = $1 WHERE username = $2", value, key)
         await conn.execute("INSERT INTO userphones (username, phones) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM userphones WHERE username = $3)", key, value, key)
-        await conn.close()
+        return True 
+
+    @_connection
+    async def _delete_data_with_connection(self, key: str, conn: asyncpg.Connection = None) -> bool:
+        if not conn:
+            return False
+        values = await self._select_data_by_key(conn, key)
+        if not values:
+             return False
+        await conn.execute("DELETE FROM userphones WHERE username = $1", key)
         return True
+
+    async def get_data(self, key: str) -> str:
+        return await self._get_data_with_connection(key)
+
+    async def set_data(self, key: str, value: str) -> bool:
+        return await self._set_data_with_connection(key, value)
 
     async def delete_data(self, key: str) -> bool:
-        conn = await asyncpg.connect(user=self._user, password=self._password, database=self._database, host=self._host)
-        values = await self._select_data_by_key(conn, key)
-
-        if not values:
-            await conn.close()
-            return False
-
-        await conn.execute("DELETE FROM userphones WHERE username = $1", key)
-        await conn.close()
-        return True
+        return await self._delete_data_with_connection(key)
 
 
 class RKSOKPhoneStorageSerializer(ObjectSerializer):
