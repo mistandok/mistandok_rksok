@@ -64,7 +64,6 @@ class RKSOKPhoneBookServer:
         if not request:
             return request.decode(self._encoding)
         while True:
-            print(request)
             request += await reader.read(1024)
             if request.endswith(self._ending.encode(self._encoding)):
                 break
@@ -118,21 +117,29 @@ class RKSOKPhoneBookServer:
 
         if not valid:
             response = validation_server_response
-        else:            
+        else:        
             response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))
+
+        print(f'Ответ для клиента: {str(response)}')
         
         await self._send_response_to_writer(writer, response)
 
     async def _get_response_for_request(self, request: RKSOKCommand) -> RKSOKCommand:
         """
-        This function get response from storage manager.
+        This function get response from storage manager if request is correct.
 
         Parameters:
         request (RKSOKCommand) - request for storage
 
         Returns:
         (RKSOKCommand) - response from storage
+        (RKSOKCommand) - incorrect_value response
         """
+        print(f'Запрос для БД: f{str(request)}')
+
+        if request.command() == ResponseStatus.INCORRECT_REQUEST.value:
+            return request
+
         return await self._storage_manager.get_response_for_request(request)
     
     async def _send_response_to_writer(self, writer: asyncio.StreamWriter, response: RKSOKCommand) -> None:

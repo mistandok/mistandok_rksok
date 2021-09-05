@@ -13,7 +13,7 @@ class RKSOKStorageManager:
 
     async def get_response_for_request(self, request: RKSOKCommand) -> RKSOKCommand:
         method =  self._methods_for_request.get(request.command(), None)
-        if not method:
+        if method is None:
             return RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
        
         return await method(request)            
