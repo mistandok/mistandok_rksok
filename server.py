@@ -61,6 +61,7 @@ class RKSOKPhoneBookServer:
         """
         request = b""
         while True:
+            print(request)
             request += await reader.read(1024)
             if request.endswith(self._ending.encode(self._encoding)):
                 break
