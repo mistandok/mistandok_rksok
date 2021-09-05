@@ -106,7 +106,11 @@ class RKSOKPhoneBookServer:
         """
         request = await self._get_all_data_from_reader(reader)
         
+        print(f'Запрос: {request}')
+
         valid, validation_server_response = await self._get_validation_response_for_request(RKSOKCommand(RequestVerb.CAN.value, value=request))
+
+        print(f'Ответ от валидатора: {valid}, {str(validation_server_response)}')
 
         if not valid:
             response = validation_server_response
