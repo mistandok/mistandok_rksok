@@ -77,7 +77,7 @@ class RKSOKPhoneBookServer:
         (str) - decode message from reader
         """
         request = b""
-        limit_time = 10
+        limit_time = 6
         start_time = time.time()
         while True:
             request += await reader.read(1024)
