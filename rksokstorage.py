@@ -1,3 +1,9 @@
+"""
+THis module describe storage for RKSOKServer.
+You can add you own storage type.
+For it you should create inheritor class from RKSOKPhoneStorage class.
+"""
+
 import asyncpg
 
 from abc import ABC, abstractmethod

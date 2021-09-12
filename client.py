@@ -1,8 +1,14 @@
+"""
+This module allow you make some test with RKSOK server.
+For start it you should type next text in terminal (for example):
+python client.py 127.0.0.1 8000
+"""
+
 import socket
 import sys
 from typing import Optional
 from rksokprotocol import RequestVerb, ResponseStatus, _PROTOCOL, _ENCODING
-from rksokextension import NotSpecifiedIPOrPortError, CanNotParseResponseError
+from rksokexception import NotSpecifiedIPOrPortError, CanNotParseResponseError
 
 
 HUMAN_READABLE_ANSWERS = {

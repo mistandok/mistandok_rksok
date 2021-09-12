@@ -1,3 +1,7 @@
+"""
+This module allow you to start work RKSOK server. 
+"""
+
 import asyncio
 import time
 
@@ -41,7 +45,7 @@ class RKSOKPhoneBookServer:
     He allow get data from clients, validate requests on "Server for validation" and send responses for clients.
     """
 
-    def __init__(self, server_parameters: ServerParameters, storage: RKSOKPhoneStorage, validate_server_parameters: ServerParameters = None) -> None:
+    def __init__(self, server_parameters: ServerParameters, storage: RKSOKPhoneStorage, validate_server_parameters: ServerParameters = ServerParameters(None, None)) -> None:
         """
         Init server parameters
 
@@ -51,7 +55,7 @@ class RKSOKPhoneBookServer:
         validate_server_parameters (Tuple[str, int]=(None, None)) - host and port for "Server for validation"
         """
         self._host, self._port = server_parameters
-        self._validate_server_host, self._validate_server_port = validate_server_parameters        
+        self._validate_server_host, self._validate_server_port = validate_server_parameters                  
         self._storage_manager = RKSOKStorageManager(storage)
 
     async def run_server(self):

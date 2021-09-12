@@ -2,7 +2,7 @@ from typing import Hashable
 
 
 class ObjectSerializer:
-    """This class setup class factory for any classes."""
+    """This class setup storage for class types for any classes."""
     def __init__(self):
         self._objects = {}
 
