@@ -126,7 +126,6 @@ class RKSOKPhoneBookServer:
         None
         """
         request = await self._get_all_data_from_reader(reader)    
-        print(request)
         if not self._client_request_is_correct_RKSOK(request):
             response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
         else:
