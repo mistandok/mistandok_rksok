@@ -144,8 +144,6 @@ class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
     async def _set_data_with_connection(self, key: str, value: str, conn: asyncpg.Connection = None) -> bool:
         if not conn:
             return False
-        # await conn.execute("UPDATE userphones SET phones = $1 WHERE username = $2", value, key)
-        # await conn.execute("INSERT INTO userphones (username, phones) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM userphones WHERE username = $3)", key, value, key)
         await conn.execute("INSERT INTO userphones (username, phones) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET phones = $3", key, value, value)
         return True 
 
