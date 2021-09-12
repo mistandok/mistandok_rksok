@@ -1,0 +1,32 @@
+# mistandok_rksok
+RKSOK server for final task in course 
+<p style="text-align: center;"><strong>Реализация сервера хранения телефонной книги</strong><strong></strong></p>
+<p style="text-align: left;">Сервер работает по собственному протоколу обмена данными, который напоминает протокол HTTP. Протокол состоит из нескольких команд:</p>
+<p style="text-align: left;">ОТДОВАЙ, УДОЛИ, ЗОПИШИ, АМОЖНА?</p>
+<p style="text-align: left;">На которые можно получить несколько типов ответа:</p>
+<p style="text-align: left;">НОРМАЛДЫКС, НИНАШОЛ, НИЛЬЗЯ</p>
+<p style="text-align: left;">Пример команды в текстовом формате:</p>
+<p style="text-align: left;">*key* - ключевое значение, не длиннее 30 символов. (Витя, Коля Иванов, Николай Петров и т.п.)</p>
+<p style="text-align: left;">*value_i* - значение телефона (формат не проверяется, в качестве телефона может быть любой набор символов)</p>
+<p style="text-align: left;"><span>"ОТДОВАЙ *key* РКСОК/1.0\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>"ЗОПИШИ *key*&nbsp;РКСОК/1.0\r\n*value_1*\r\n*value_2*.\r\n...*value_n*\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>"УДОЛИ *key* РКСОК/1.0\r\n"</span></p>
+<p style="text-align: left;"><span>Команды, помимо проверки на удовлетворение формату протокола, валидируются на сервере проверки, который должен быть указан в конфигурационном файле .env.</span></p>
+<p style="text-align: left;"><span>Если запрос не удовлетворяет проверкам на соответствие формата протоколу, то клиенту возвращается ответ:</span></p>
+<p style="text-align: left;"><span>"НИПОНЯЛ РКСОК/1.0\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>Валидирующий сервер проверки может как разрешить обрабатывать запрос, так и запретить. В первом случае он вернет ответ:</span></p>
+<p style="text-align: left;"><span>"МОЖНА РКСОК/1.0\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>во втором случае:</span></p>
+<p style="text-align: left;"><span>"НИЛЬЗЯ РКСОК/1.0\r\n*reason*\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>Если запрос не прошел проверку, то возвращается ответ от валидирующего сервера. Если запрос прошел проверку, то дальше идет работа с хранилищем данных и, в зависимости от операции, возвращается ответ:</span></p>
+<p style="text-align: left;"><span>"НОРМАЛДЫКС РКСОК/1.0\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>"НИНАШОЛ РКСОК/1.0\r\n\r\n"</span></p>
+<p style="text-align: left;"><span>Информация о пользователе и его телефоне хранится в БД PostgreSQL:</span></p>
+<p style="text-align: left;"><span>phonebookdb</span></p>
+<p style="text-align: left;"><span>В таблице:</span><span></span></p>
+<p style="text-align: left;"><span>userphones</span></p>
+<p style="text-align: left;"><span></span></p>
+<p style="text-align: left;"><span></span></p>
+<p style="text-align: left;"><span></span></p>
+<p style="text-align: left;"><span></span></p>
+<p style="text-align: left;"><span></span></p>
