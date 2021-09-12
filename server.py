@@ -1,11 +1,17 @@
 import asyncio
+import time
+
 from typing import Tuple
 
+from collections import namedtuple
 from decouple import config
 from rksokprotocol import RequestVerb, ResponseStatus, RKSOKCommand
 from rksokstoragemanager import RKSOKStorageManager
 from rksokstorage import RKSOKPhoneStorage
 
+ENCODING = "UTF-8"
+SEPARATOR = "\r\n"
+ENDING = "\r\n\r\n"
 
 SERVER_HOST = config("SERVER_HOST")
 SERVER_PORT = int(config("SERVER_PORT"))
@@ -26,28 +32,39 @@ else:
     STORAGE_PARM = {}
 
 
+ServerParameters = namedtuple("ServerParameters", ["host", "port"])
+
+
 class RKSOKPhoneBookServer:
     """
     Server for communication with RKSOK clients.
     He allow get data from clients, validate requests on "Server for validation" and send responses for clients.
     """
 
-    def __init__(self, server_parameters: Tuple[str, int], storage: RKSOKPhoneStorage, ending: str="\r\n\r\n", encoding: str="UTF-8",  validate_server_parameters: Tuple[str, int]=(None, None)) -> None:
+    def __init__(self, server_parameters: ServerParameters, storage: RKSOKPhoneStorage, validate_server_parameters: ServerParameters = None) -> None:
         """
         Init server parameters
 
         Parameters:
         server_parameters (Tuple[str, int]) - host and port for start server
         storage (RKSOKPhoneStorage) - storage for work with data
-        ending (str) - ending for requests and responses
-        encoding (str="UTF-8") - encoding
         validate_server_parameters (Tuple[str, int]=(None, None)) - host and port for "Server for validation"
         """
         self._host, self._port = server_parameters
-        self._ending = ending
-        self._encoding = encoding
         self._validate_server_host, self._validate_server_port = validate_server_parameters        
         self._storage_manager = RKSOKStorageManager(storage)
+
+    async def run_server(self):
+        """
+        Start server without limit by time.
+        """
+        server = await asyncio.start_server(
+            self._handle_request,
+            self._host,
+            self._port)
+
+        async with server:
+            await server.serve_forever()
 
     async def _get_all_data_from_reader(self, reader: asyncio.StreamReader) -> str:
         """
@@ -60,14 +77,15 @@ class RKSOKPhoneBookServer:
         (str) - decode message from reader
         """
         request = b""
-        request += await reader.readline()
-        if not request:
-            return request.decode(self._encoding)
+        limit_time = 10
+        start_time = time.time()
         while True:
             request += await reader.read(1024)
-            if request.endswith(self._ending.encode(self._encoding)):
+            if request.endswith(ENDING.encode(ENCODING)):
                 break
-        return request.decode(self._encoding)
+            if time.time() - start_time >= limit_time:
+                return ''
+        return request.decode(ENCODING)
 
     async def _get_validation_response_for_request(self, request: RKSOKCommand) -> Tuple[bool, RKSOKCommand]:
         """
@@ -85,7 +103,7 @@ class RKSOKPhoneBookServer:
                 return True, RKSOKCommand(ResponseStatus.APPROVED.value)
 
             reader, writer = await asyncio.open_connection(self._validate_server_host, self._validate_server_port)
-            writer.write(str(request).encode(self._encoding))
+            writer.write(str(request).encode(ENCODING))
             response = await self._get_all_data_from_reader(reader)
             writer.close()
             rksok_response = RKSOKCommand.rksokcommand_from_str(response)
@@ -108,7 +126,7 @@ class RKSOKPhoneBookServer:
         None
         """
         request = await self._get_all_data_from_reader(reader)    
-
+        print(request)
         if not self._client_request_is_correct_RKSOK(request):
             response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
         else:
@@ -116,7 +134,7 @@ class RKSOKPhoneBookServer:
             
             if not valid:
                 response = validation_server_response
-            else:        
+            else:       
                 response = await self._get_response_for_request(RKSOKCommand.rksokcommand_from_str(request))         
         
         await self._send_response_to_writer(writer, response)
@@ -152,27 +170,16 @@ class RKSOKPhoneBookServer:
         Returns:
         None
         """
-        writer.write(str(response).encode(self._encoding))
+        writer.write(str(response).encode(ENCODING))
         await writer.drain()
         writer.close()
 
-    async def run_server(self):
-        """
-        Start server without limit by time.
-        """
-        server = await asyncio.start_server(
-            self._handle_request,
-            self._host,
-            self._port)
 
-        async with server:
-            await server.serve_forever()
-
-
-storage = RKSOKPhoneStorage.get_cls_by_storage_type(STORAGE_TYPE)(**STORAGE_PARM)
-server = RKSOKPhoneBookServer(
-    server_parameters=(SERVER_HOST, SERVER_PORT),
-    storage=storage,
-    validate_server_parameters=(VALIDATE_SERVER_HOST, VALIDATE_SERVER_PORT)
-    )
-asyncio.run(server.run_server())
+if __name__ == '__main__':
+    storage = RKSOKPhoneStorage.get_cls_by_storage_type(STORAGE_TYPE)(**STORAGE_PARM)
+    server = RKSOKPhoneBookServer(
+        server_parameters=ServerParameters(SERVER_HOST, SERVER_PORT),
+        storage=storage,
+        validate_server_parameters=ServerParameters(VALIDATE_SERVER_HOST, VALIDATE_SERVER_PORT)
+        )
+    asyncio.run(server.run_server())

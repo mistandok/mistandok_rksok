@@ -50,6 +50,9 @@ class RKSOKCommand:
         key (str = None) - key for RKSOKcommand (for example: "Иван Хмурый")
         value (str = None) = value for RKSOKCommand (for Example: "89218881111\r\n8-800-555-35-35")
         """
+        self._prop_key = None
+        self._prop_command = None
+        self._prop_value = None
         self._command = command
         self._key = key
         self._value = value
@@ -116,7 +119,7 @@ class RKSOKCommand:
         (RKSOKCommand)
         """
         try:
-            command_line, *values = command.strip().split('\r\n')
+            command_line, *values = command.strip().split(_SEPARATOR)
             command, *key, protocol = command_line.strip().split()
             
             if protocol != _PROTOCOL:

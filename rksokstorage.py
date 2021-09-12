@@ -2,6 +2,7 @@ import asyncpg
 
 from abc import ABC, abstractmethod
 from objectserializer import ObjectSerializer
+from typing import Union
 
 
 class RKSOKPhoneStorage(ABC):
@@ -10,7 +11,7 @@ class RKSOKPhoneStorage(ABC):
     """
 
     @abstractmethod
-    async def get_data(self, key: str) -> str:
+    async def get_data(self, key: str) -> Union[str, None]:
         """
         This function allow get data from storage.
 
@@ -18,7 +19,8 @@ class RKSOKPhoneStorage(ABC):
         key (str) - key value for search info on storage.
 
         Returns:
-        data (str) - return data for key in str format
+        data (str) - return data for key in str format if them exists
+        None - return None if data not exists
         """
         pass
 
@@ -117,11 +119,20 @@ class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
         self._database = database
         self._host = host
 
+    async def get_data(self, key: str) -> str:
+        return await self._get_data_with_connection(key)
+
+    async def set_data(self, key: str, value: str) -> bool:
+        return await self._set_data_with_connection(key, value)
+
+    async def delete_data(self, key: str) -> bool:
+        return await self._delete_data_with_connection(key)
+
     async def _select_data_by_key(self, conn: asyncpg.Connection, key: str) -> asyncpg.Record:
         return await conn.fetchrow('SELECT * FROM userphones WHERE username = $1', key)
     
     @_connection
-    async def _get_data_with_connection(self, key: str, conn: asyncpg.Connection = None) -> str:
+    async def _get_data_with_connection(self, key: str, conn: asyncpg.Connection = None) -> Union[str, None]:
         if not conn:
             return None
         values = await self._select_data_by_key(conn, key)
@@ -133,8 +144,9 @@ class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
     async def _set_data_with_connection(self, key: str, value: str, conn: asyncpg.Connection = None) -> bool:
         if not conn:
             return False
-        await conn.execute("UPDATE userphones SET phones = $1 WHERE username = $2", value, key)
-        await conn.execute("INSERT INTO userphones (username, phones) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM userphones WHERE username = $3)", key, value, key)
+        # await conn.execute("UPDATE userphones SET phones = $1 WHERE username = $2", value, key)
+        # await conn.execute("INSERT INTO userphones (username, phones) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM userphones WHERE username = $3)", key, value, key)
+        await conn.execute("INSERT INTO userphones (username, phones) VALUES ($1, $2) ON CONFLICT (username) DO UPDATE SET phones = $3", key, value, value)
         return True 
 
     @_connection
@@ -146,15 +158,6 @@ class PostgreSQLRKSOKPhoneStorage(RKSOKPhoneStorage):
              return False
         await conn.execute("DELETE FROM userphones WHERE username = $1", key)
         return True
-
-    async def get_data(self, key: str) -> str:
-        return await self._get_data_with_connection(key)
-
-    async def set_data(self, key: str, value: str) -> bool:
-        return await self._set_data_with_connection(key, value)
-
-    async def delete_data(self, key: str) -> bool:
-        return await self._delete_data_with_connection(key)
 
 
 class RKSOKPhoneStorageSerializer(ObjectSerializer):
