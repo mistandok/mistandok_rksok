@@ -1,4 +1,4 @@
-<p style="text-align: center;"><strong>Реализация сервера хранения телефонной книги</strong><strong></strong></p>
+<p style="text-align: center;"><strong>Реализация сервера хранения телефонной книги с помощью asyncio streams</strong><strong></strong></p>
 <p style="text-align: left;">Сервер работает по собственному протоколу обмена данными, который напоминает протокол HTTP. Протокол состоит из нескольких команд:</p>
 <p style="text-align: left;"><code>ОТДОВАЙ, УДОЛИ, ЗОПИШИ, АМОЖНА?</code></p>
 <p style="text-align: left;">На которые можно получить несколько типов ответа:</p>
