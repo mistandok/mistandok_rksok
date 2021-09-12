@@ -1,0 +1,6 @@
+create database "phonebookdb" with owner "user_for_work_with_db" encoding 'UTF8';
+
+create table userphones (
+    username varchar primary key,
+    phone varchar
+);
