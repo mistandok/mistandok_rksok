@@ -40,6 +40,8 @@
 <p style="text-align: left;"><code><span><br />DB_USER_PASSWORD=dbuserpassword</span></code></p>
 <p style="text-align: left;"><code><span><br />DB_NAME=phonebookdb</span></code></p>
 <p style="text-align: left;"><code><span><br />DB_HOST=127.0.0.1</span></code></p>
+<p style="text-align: left;"><code><span><br />CLIENT_REQUEST_TIMEOUT=7</span></code></p>
+<p style="text-align: left;"><code><span><br />SERVER_RESPONSE_TIMEOUT=7</span></code></p>
 <p style="text-align: left;">Далее необходимо развернуть новое виртуальное окружение в корневой папке проекта:</p>
 <p style="text-align: left;"><code>python3.9 -m venv env</code></p>
 <p style="text-align: left;">активировать его находясь в корневой папке проекта (команда для Debian):</p>
