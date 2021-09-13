@@ -143,6 +143,8 @@ class RKSOKPhoneBookServer:
         except asyncio.TimeoutError:
             request = ''
 
+        print(request)
+
         if not self._client_request_is_correct_RKSOK(request):
             response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
         else:
