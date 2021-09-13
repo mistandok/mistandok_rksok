@@ -87,7 +87,7 @@ class RKSOKPhoneBookServer:
         while True:
             data = await reader.read(1024)
             if data:
-                message += await reader.read(1024)
+                message += data
                 if message.endswith(ENDING.encode(ENCODING)):
                     break
             else:
@@ -146,8 +146,6 @@ class RKSOKPhoneBookServer:
             )
         except asyncio.TimeoutError:
             request = ''
-
-        print(request)
 
         if not self._client_request_is_correct_RKSOK(request):
             response = RKSOKCommand(ResponseStatus.INCORRECT_REQUEST.value)
