@@ -83,12 +83,16 @@ class RKSOKPhoneBookServer:
         Returns:
         (str) - decode message from reader
         """
-        request = b""
+        message = b""
         while True:
-            request += await reader.read(1024)
-            if request.endswith(ENDING.encode(ENCODING)):
-                break
-        return request.decode(ENCODING)
+            data = await reader.read(1024)
+            if data:
+                message += await reader.read(1024)
+                if message.endswith(ENDING.encode(ENCODING)):
+                    break
+            else:
+                return message.decode(ENCODING)
+        return message.decode(ENCODING)
 
     async def _get_validation_response_for_request(self, request: RKSOKCommand) -> Tuple[bool, RKSOKCommand]:
         """
